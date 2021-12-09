@@ -4,12 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "bin": {
-    "hello": "./build/cli.js"
+    "cli": "./build/cli.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
-    "package": "yarn build && pkg . --targets node14-linux-x64 --output hello"
+    "package": "yarn build && pkg . --targets node14-linux-x64 --output cli"
   },
   "pkg": {
     "scripts": "build/**/*.js"
