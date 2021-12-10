@@ -3,6 +3,9 @@ import _ from 'lodash';
 import { ThenArg } from '../type-util';
 import assert from 'assert';
 import dayjs, { Dayjs } from 'dayjs';
+import { GithubIssue } from './types';
+
+const LABEL_PROCESSED = 'freshdesk-processed';
 export class GithubApi {
   private _octokit: Octokit;
   private _rateLimit?: ThenArg<
@@ -15,7 +18,6 @@ export class GithubApi {
   public setRateLimit = async (): Promise<void> => {
     const rateLimit = await this._octokit.rest.rateLimit.get();
     this._rateLimit = rateLimit.data;
-    console.log(this, this._rateLimit);
   };
 
   private _assertRateLimit = () => {
@@ -46,13 +48,29 @@ export class GithubApi {
       } else {
         then.add(5, 'seconds');
         now.subtract(5, 'seconds');
-
-        console.log(`Hit rate limit, waiting till ${then}`);
         await new Promise((e) =>
           setTimeout(e, Math.abs(then.diff(now, 'milliseconds'))),
         );
       }
     }
+  };
+
+  public setIssueSentToFreshdesk = async function (
+    this: GithubApi,
+    issue: GithubIssue,
+  ): Promise<
+    ThenArg<ReturnType<Octokit['rest']['issues']['update']>>['status']
+  > {
+    this._assertRateLimit();
+    await this._waitForRateLimit();
+    const response = await this._octokit.rest.issues.update({
+      ...this._getRepo(),
+      issue_number: issue.number,
+      labels: [...issue.labels, LABEL_PROCESSED],
+    });
+    this._updateRate();
+    console.log(response.data);
+    return response.status;
   };
 
   public getIssue = async function (
@@ -111,6 +129,7 @@ export class GithubApi {
       this._updateRate();
       if (!options.data.length) break;
       const filtered = options.data
+        .filter(notProcessed)
         .filter((e) => !from || dayjs(e.created_at) > from)
         .filter((e) => !to || dayjs(e.created_at) < to);
       // TODO inverter a ordem disso quando issues estiverem no freshdesk
@@ -129,3 +148,11 @@ export type IssuesFilter = {
   to?: Dayjs;
   open: boolean;
 };
+
+function notProcessed(issue: GithubIssue) {
+  if (!issue) return false;
+  const labels = issue.labels.map((e) =>
+    typeof e === 'string' ? e : e.name || '',
+  );
+  return !labels.includes(LABEL_PROCESSED);
+}
