@@ -6,7 +6,6 @@ import dayjs, { Dayjs } from 'dayjs';
 import { GithubIssue } from './types';
 
 const LABEL_PROCESSED = 'freshdesk-processed';
-const LABEL_BUG = 'bug';
 
 const RATE_LIMIT_REQUIRED_MESSAGE =
   'Rate limit is required by this point, make sure to call setRateLimit() after creating the api instance';
@@ -155,5 +154,6 @@ export function notProcessed(issue: GithubIssue): boolean {
   const labels = issue.labels.map((e) =>
     typeof e === 'string' ? e : e.name || '',
   );
-  return !labels.includes(LABEL_PROCESSED) && !labels.includes(LABEL_BUG);
+
+  return !labels.includes(LABEL_PROCESSED);
 }
