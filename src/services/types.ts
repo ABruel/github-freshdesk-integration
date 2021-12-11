@@ -8,41 +8,41 @@ export type GithubIssue = ArrayElement<
 
 export type FreshdeskTicket = {
   name: string;
-  requester_id: number;
-  email: string;
-  facebook_id: string;
-  phone: string;
-  twitter_id: string;
-  unique_external_id: string;
+  requester_id?: number;
+  email?: string;
+  facebook_id?: string;
+  phone?: string;
+  twitter_id?: string;
+  unique_external_id?: string;
   subject: string;
   type: string;
   status: Status;
   priority: Priority;
   description: string;
   responder_id: number;
-  attachments: unknown[];
-  cc_emails: string[];
-  custom_fields: Record<string, unknown>;
-  due_by: Dayjs;
-  email_config_id: number;
-  fr_due_by: Dayjs;
+  attachments?: unknown[];
+  cc_emails?: string[];
+  custom_fields?: Record<string, unknown>;
+  due_by?: Dayjs;
+  email_config_id?: number;
+  fr_due_by?: Dayjs;
   group_id: number;
-  product_id: number;
+  product_id?: number;
   source: Source;
   tags: string[];
-  company_id: number;
-  internal_agent_id: number;
-  internal_group_id: number;
+  company_id?: number;
+  internal_agent_id?: number;
+  internal_group_id?: number;
 };
 
-enum Status {
+export enum Status {
   OPEN = 2,
   PENDING = 3,
   RESOLVED = 4,
   CLOSED = 5,
 }
 
-enum Source {
+export enum Source {
   EMAIL = 1,
   PORTAL = 2,
   PHONE = 3,
@@ -51,7 +51,7 @@ enum Source {
   OUTBOUND_EMAIL = 10,
 }
 
-enum Priority {
+export enum Priority {
   LOW = 1,
   MEDIUM = 2,
   HIGH = 3,

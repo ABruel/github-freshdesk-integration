@@ -6,6 +6,10 @@ import dayjs, { Dayjs } from 'dayjs';
 import { GithubIssue } from './types';
 
 const LABEL_PROCESSED = 'freshdesk-processed';
+const LABEL_BUG = 'bug';
+
+const RATE_LIMIT_REQUIRED_MESSAGE =
+  'Rate limit is required by this point, make sure to call setRateLimit() after creating the api instance';
 export class GithubApi {
   private _octokit: Octokit;
   private _rateLimit?: ThenArg<
@@ -21,13 +25,11 @@ export class GithubApi {
   };
 
   private _assertRateLimit = () => {
-    assert(
-      Boolean(this._rateLimit),
-      'Rate limit is required by this point, make sure to call setRateLimit() after creating the api instance',
-    );
+    assert(Boolean(this._rateLimit), RATE_LIMIT_REQUIRED_MESSAGE);
   };
 
   private _updateRate = () => {
+    assert(this._rateLimit, RATE_LIMIT_REQUIRED_MESSAGE);
     if (!this._rateLimit) throw Error('teste assert');
     this._rateLimit.rate.remaining -= 1;
     this._rateLimit.rate.used += 1;
@@ -69,7 +71,6 @@ export class GithubApi {
       labels: [...issue.labels, LABEL_PROCESSED],
     });
     this._updateRate();
-    console.log(response.data);
     return response.status;
   };
 
@@ -149,10 +150,10 @@ export type IssuesFilter = {
   open: boolean;
 };
 
-function notProcessed(issue: GithubIssue) {
+export function notProcessed(issue: GithubIssue): boolean {
   if (!issue) return false;
   const labels = issue.labels.map((e) =>
     typeof e === 'string' ? e : e.name || '',
   );
-  return !labels.includes(LABEL_PROCESSED);
+  return !labels.includes(LABEL_PROCESSED) && !labels.includes(LABEL_BUG);
 }
