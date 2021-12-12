@@ -155,5 +155,8 @@ export function notProcessed(issue: GithubIssue): boolean {
     typeof e === 'string' ? e : e.name || '',
   );
 
-  return !labels.includes(LABEL_PROCESSED);
+  return (
+    !labels.includes(LABEL_PROCESSED) &&
+    issue.assignee?.login.toUpperCase() !== 'LUISCISLAGHI'
+  );
 }

@@ -25,10 +25,9 @@ export class FreshdeskApi {
     let response = await arg0().catch((e) => {
       return e.response;
     });
-    if (response.status === undefined) console.log('respose', response);
     while (response.status === 429) {
       const retry = response.headers['retry-after'];
-      console.warn('Rate limit hit, retrying in a few seconds');
+      console.warn('\t[FRESHDESK] RATE LIMIT HIT, RETRYING IN A FEW SECONDS');
       await new Promise((r) => setTimeout(r, (parseInt(retry) + 1) * 1000));
       response = await arg0().catch((e) => e.response);
     }

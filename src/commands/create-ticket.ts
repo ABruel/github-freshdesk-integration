@@ -62,10 +62,15 @@ async function handleIssue(
 ) {
   if (typeof issue === 'string')
     issue = await githubApi.getIssue(parseInt(issue));
+  if (!issue.assignee) {
+    console.warn(`\tSEM ASSIGNEE PARA ISSUE ${issue.number}, IGNORANDO`);
+    return;
+  }
+
   if (notProcessed(issue)) {
     const success = await sendToFreshdesk(issue, freshdeskApi);
     if (success) githubApi.setIssueSentToFreshdesk(issue);
-    else console.warn(`Erro ao enviar issue ${issue.number} ao freshdesk`);
+    else console.warn(`\tERRO AO ENVIAR ISSUE ${issue.number} AO FRESHDESK`);
   }
 }
 
@@ -74,12 +79,15 @@ async function handleFiltered(
   freshdeskApi: FreshdeskApi,
   filter: Arg1<GithubApi['getIssues']>,
 ) {
+  let i = 0;
   for await (const data of githubApi.getIssues(filter)) {
+    i++;
+    console.log('PROCESSANDO PAGINA ' + i);
     for (const issue of data) {
       if (issue === undefined) continue;
       await handleIssue(githubApi, freshdeskApi, issue);
     }
-    break;
+    // if (i > 3) break;
   }
 }
 
@@ -87,10 +95,13 @@ async function sendToFreshdesk(
   issue: GithubIssue,
   freshDeskApi: FreshdeskApi,
 ): Promise<boolean> {
-  const htmlBody = getHtmlBody(issue.body);
   const assignee = getAssignee(issue.assignee);
-  if (!assignee)
-    console.warn(`SEM ASSIGNEE PARA ISSUE ${issue.number}, IGNORANDO`);
+  if (!assignee) {
+    console.warn(`\tSEM ASSIGNEE PARA ISSUE ${issue.number}, IGNORANDO`);
+    return false;
+  }
+  console.log(`\tENVIANDO ISSUE #${issue.number}`);
+  const htmlBody = getHtmlBody(issue.body) || issue.title;
   const createdby = process.env['GITHUB_BOT_EMAIL'];
   assert(createdby, 'GITHUB_BOT_EMAIL não presente no env');
 
@@ -112,7 +123,7 @@ async function sendToFreshdesk(
     type: 'Demanda Sistema',
     subject: `[Github#${issue.number}] - ${issue.title}`,
     tags: tags,
-    status: Status.RESOLVED,
+    status: Status.CLOSED,
     priority: Priority.MEDIUM,
     description: htmlBody,
     responder_id: assignee,
