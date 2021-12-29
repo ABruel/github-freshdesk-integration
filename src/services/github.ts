@@ -151,12 +151,13 @@ export type IssuesFilter = {
 
 export function notProcessed(issue: GithubIssue): boolean {
   if (!issue) return false;
+
   const labels = issue.labels.map((e) =>
     typeof e === 'string' ? e : e.name || '',
   );
 
   return (
     !labels.includes(LABEL_PROCESSED) &&
-    issue.assignee?.login.toUpperCase() !== 'LUISCISLAGHI'
+    issue.user?.login.toUpperCase() !== 'OPTZBOT'
   );
 }
